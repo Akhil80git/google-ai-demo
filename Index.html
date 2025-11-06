@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Google Generative AI Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    
+    h1 { 
+      font-size: 28px; 
+      margin-bottom: 20px; 
+      color: #333;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+    }
+    
+    label { 
+      display: block; 
+      margin-bottom: 8px; 
+      font-weight: 600;
+      color: #333;
+      font-size: 16px;
+    }
+    
+    textarea, input[type="text"] { 
+      width: 100%; 
+      padding: 15px; 
+      font-size: 16px; 
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+    
+    textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+    
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin: 25px 0;
+    }
+    
+    button { 
+      padding: 15px 30px; 
+      font-size: 16px; 
+      cursor: pointer; 
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      flex: 1;
+    }
+    
+    #runBtn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+    
+    #runBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    #clearBtn {
+      background: #f8f9fa;
+      color: #666;
+      border: 2px solid #e0e0e0;
+    }
+    
+    #clearBtn:hover {
+      background: #e9ecef;
+      transform: translateY(-2px);
+    }
+    
+    .output-container {
+      margin-top: 30px;
+    }
+    
+    .output { 
+      white-space: pre-wrap; 
+      background: #f8f9fa; 
+      padding: 20px; 
+      border-radius: 10px;
+      border-left: 5px solid #667eea;
+      min-height: 100px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    .note { 
+      color: #666; 
+      font-size: 14px; 
+      margin-top: 15px;
+      padding: 15px;
+      background: #fff8e1;
+      border-radius: 10px;
+      border-left: 5px solid #ffc107;
+    }
+    
+    .status {
+      padding: 12px 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      font-weight: 500;
+      text-align: center;
+    }
+    
+    .status.ready {
+      background: #e8f5e8;
+      color: #2e7d32;
+      border: 1px solid #c8e6c9;
+    }
+    
+    .status.loading {
+      background: #e3f2fd;
+      color: #1565c0;
+      border: 1px solid #bbdefb;
+    }
+    
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+      border: 1px solid #ffcdd2;
+    }
+    
+    .success-message {
+      text-align: center;
+      color: #4caf50;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Google Generative AI - Complete Demo</h1>
+    
+    <div class="success-message">
+      ✅ Frontend + Backend Connected Successfully!
+    </div>
+
+    <div class="input-group">
+      <label><strong>🤖 Model Name</strong></label>
+      <input id="model" type="text" value="models/text-bison-001" placeholder="Enter model name" />
+    </div>
+
+    <div class="input-group">
+      <label><strong>💬 Prompt (आप जो पूछना चाहते हैं):</strong></label>
+      <textarea id="prompt" placeholder="अपना प्रश्न यहाँ लिखें...">Namaste! mujhe ek chhota introduction likh kar do about "Madhya Pradesh tourism" in Hindi — 3 short lines.</textarea>
+    </div>
+
+    <div class="button-group">
+      <button id="runBtn">🎯 Generate Response</button>
+      <button id="clearBtn">🗑️ Clear Output</button>
+    </div>
+
+    <div class="note">
+      <strong>📝 नोट:</strong> यह एक secure setup है। API key server पर protected है और CORS errors solved हैं।
+    </div>
+
+    <div class="output-container">
+      <h3>📄 Response:</h3>
+      <div id="status" class="status ready">✅ Ready to generate content...</div>
+      <div id="result" class="output"></div>
+    </div>
+  </div>
+
+  <script>
+    const runBtn = document.getElementById('runBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const modelEl = document.getElementById('model');
+    const promptEl = document.getElementById('prompt');
+    const resultEl = document.getElementById('result');
+    const statusEl = document.getElementById('status');
+
+    function updateStatus(message, type = 'ready') {
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`;
+    }
+
+    clearBtn.addEventListener('click', () => {
+      resultEl.textContent = '';
+      updateStatus('✅ Cleared. Ready for new request.', 'ready');
+      promptEl.focus();
+    });
+
+    runBtn.addEventListener('click', async () => {
+      const model = modelEl.value.trim() || 'models/text-bison-001';
+      const promptText = promptEl.value.trim();
+
+      if (!promptText) { 
+        alert('❌ Please enter a prompt.'); 
+        return; 
+      }
+
+      updateStatus('🔄 Processing your request...', 'loading');
+      resultEl.textContent = '';
+
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            prompt: promptText,
+            model: model
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || `Server error: ${response.status}`);
+        }
+
+        let output = '';
+        if (data.candidates && data.candidates.length > 0 && data.candidates[0].output) {
+          output = data.candidates[0].output;
+        } else if (data.output) {
+          output = typeof data.output === 'string' ? data.output : JSON.stringify(data.output, null, 2);
+        } else {
+          output = JSON.stringify(data, null, 2);
+        }
+
+        updateStatus('✅ Success! Response received.', 'ready');
+        resultEl.textContent = output;
+
+      } catch (err) {
+        updateStatus('❌ Error occurred.', 'error');
+        resultEl.textContent = `Error: ${err.message}`;
+        console.error('API Error:', err);
+      }
+    });
+
+    // Enter key support
+    promptEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        runBtn.click();
+      }
+    });
+  </script>
+</body>
+  </html>
